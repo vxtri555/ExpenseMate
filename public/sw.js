@@ -1,13 +1,13 @@
 // ExpenseMate service worker - makes the app installable and usable offline
-const CACHE = 'expensemate-v1';
+const CACHE = 'expensemate-v2';
 const SHELL = [
   '/', '/index.html', '/style.css', '/app.js', '/manifest.json',
-  '/icons/icon-192.png', '/icons/icon-512.png',
+  '/icons/icon.svg',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE).then((c) => Promise.all(SHELL.map((u) => c.add(u).catch(() => null)))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
