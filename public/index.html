@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#4f46e5" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ExpenseMate" />
+  <title>ExpenseMate</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="phone">
+    <!-- App header -->
+    <header class="app-header">
+      <div class="header-row">
+        <div class="brand">
+          <div class="logo">₹</div>
+          <div>
+            <h1 id="viewTitle">ExpenseMate</h1>
+            <p id="greeting">Welcome back 👋</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="round-btn" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+        </div>
+      </div>
+      <div class="header-row sub">
+        <input type="month" id="monthPicker" class="month-input" aria-label="Select month" />
+        <span class="mode-badge" id="modeBadge">Checking…</span>
+      </div>
+    </header>
+
+    <main class="content">
+      <!-- HOME -->
+      <section class="view active" id="view-dashboard">
+        <div class="hero-card">
+          <p>Total spent this month</p>
+          <h2 id="statTotal">₹0</h2>
+          <div class="hero-row">
+            <span id="statCount">0 transactions</span>
+            <span id="budgetPct">—</span>
+          </div>
+          <div class="progress light"><div class="progress-bar" id="budgetBar"></div></div>
+          <p class="hero-msg" id="budgetMsg">Set a budget to track your limit.</p>
+        </div>
+
+        <div class="stats">
+          <div class="stat-card"><span class="stat-ic" style="background:#dcfce7">💰</span><p>Budget left</p><h3 id="statLeft">—</h3><small id="statBudget">No budget</small></div>
+          <div class="stat-card"><span class="stat-ic" style="background:#e0e7ff">📅</span><p>Daily avg</p><h3 id="statAvg">₹0</h3><small>this month</small></div>
+          <div class="stat-card wide"><span class="stat-ic" style="background:#fef3c7">🏆</span><div><p>Top category</p><h3 id="statTop">—</h3></div><small id="statTopAmt"></small></div>
+        </div>
+
+        <div class="card">
+          <div class="row-between"><h4>Spending by category</h4></div>
+          <div class="chart-box"><canvas id="categoryChart"></canvas></div>
+        </div>
+
+        <div class="card">
+          <div class="row-between"><h4>Daily spending</h4></div>
+          <div class="chart-box short"><canvas id="trendChart"></canvas></div>
+        </div>
+
+        <div class="card">
+          <div class="row-between">
+            <h4>Recent</h4>
+            <a href="#" class="link" data-goto="expenses">See all</a>
+          </div>
+          <div id="recentList" class="tx-list"></div>
+        </div>
+      </section>
+
+      <!-- EXPENSES -->
+      <section class="view" id="view-expenses">
+        <div class="search-bar">
+          <input type="search" id="searchInput" class="input" placeholder="🔍  Search expenses" />
+          <button class="round-btn" id="filterToggle" aria-label="Filters">⚙️</button>
+        </div>
+        <div class="chips" id="categoryChips"></div>
+        <div class="filter-panel" id="filterPanel">
+          <select id="categoryFilter" class="input" hidden></select>
+          <label>Sort by
+            <select id="sortSelect" class="input">
+              <option value="date-desc">Newest first</option>
+              <option value="date-asc">Oldest first</option>
+              <option value="amount-desc">Amount: high → low</option>
+              <option value="amount-asc">Amount: low → high</option>
+            </select>
+          </label>
+          <div class="two">
+            <label>From<input type="date" id="fromDate" class="input" /></label>
+            <label>To<input type="date" id="toDate" class="input" /></label>
+          </div>
+          <button class="btn ghost" id="clearFilters">Clear filters</button>
+        </div>
+        <div class="row-between list-head">
+          <span class="muted small" id="rangeInfo"></span>
+          <button class="btn ghost small" id="exportBtn">⬇ CSV</button>
+        </div>
+        <div id="expenseTable" class="tx-list card-list"></div>
+        <p class="empty" id="emptyState">No expenses found.<br>Tap <b>+</b> to add one.</p>
+      </section>
+
+      <!-- BUDGET -->
+      <section class="view" id="view-budget">
+        <div class="card center">
+          <div class="ring" id="budgetRing"><div><span id="ringText">0%</span><small>used</small></div></div>
+          <p class="ring-spent"><b id="ringSpent">₹0</b> <span class="muted" id="ringOf">of ₹0</span></p>
+          <p id="ringStatus" class="status ok">On track</p>
+        </div>
+        <div class="card">
+          <h4>Monthly budget · <span id="budgetMonthLabel"></span></h4>
+          <form id="budgetForm" class="inline-form">
+            <input type="number" id="budgetInput" class="input" min="0" step="1" inputmode="numeric" placeholder="e.g. 8000" required />
+            <button class="btn primary" type="submit">Save</button>
+          </form>
+          <div class="quick-amounts">
+            <button type="button" data-amt="3000">₹3k</button><button type="button" data-amt="5000">₹5k</button>
+            <button type="button" data-amt="8000">₹8k</button><button type="button" data-amt="10000">₹10k</button>
+          </div>
+        </div>
+        <div class="card">
+          <h4>Category breakdown</h4>
+          <div id="categoryBreakdown"></div>
+        </div>
+      </section>
+
+      <!-- REPORTS -->
+      <section class="view" id="view-reports">
+        <div class="card">
+          <h4>Last 6 months</h4>
+          <div class="chart-box"><canvas id="monthlyChart"></canvas></div>
+        </div>
+        <div class="card">
+          <h4>Insights</h4>
+          <ul class="insights" id="insights"></ul>
+        </div>
+        <div class="card">
+          <h4>Payment methods</h4>
+          <div class="chart-box short"><canvas id="paymentChart"></canvas></div>
+        </div>
+        <button class="btn primary block" id="installBtn" hidden>📲 Install ExpenseMate app</button>
+      </section>
+    </main>
+
+    <!-- Bottom navigation -->
+    <nav class="bottom-nav">
+      <a href="#" class="nav-link active" data-view="dashboard"><span>🏠</span>Home</a>
+      <a href="#" class="nav-link" data-view="expenses"><span>🧾</span>Expenses</a>
+      <button class="fab" id="addBtn" aria-label="Add expense">+</button>
+      <a href="#" class="nav-link" data-view="budget"><span>🎯</span>Budget</a>
+      <a href="#" class="nav-link" data-view="reports"><span>📊</span>Reports</a>
+    </nav>
+  </div>
+
+  <!-- Add / Edit bottom sheet -->
+  <div class="sheet-backdrop" id="modal">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="row-between">
+        <h3 id="modalTitle">Add Expense</h3>
+        <button class="round-btn" id="closeModal" aria-label="Close">✕</button>
+      </div>
+      <form id="expenseForm" class="stack">
+        <input type="hidden" id="expenseId" />
+        <div class="amount-field">
+          <span>₹</span>
+          <input type="number" id="fAmount" min="0.01" step="0.01" inputmode="decimal" placeholder="0" required />
+        </div>
+        <label>Title<input type="text" id="fTitle" class="input" maxlength="80" placeholder="e.g. Lunch at canteen" required /></label>
+        <label>Category</label>
+        <div class="cat-grid" id="catGrid"></div>
+        <select id="fCategory" hidden></select>
+        <div class="two">
+          <label>Date<input type="date" id="fDate" class="input" required /></label>
+          <label>Payment<select id="fPayment" class="input">
+            <option>UPI</option><option>Cash</option><option>Card</option><option>Net Banking</option>
+          </select></label>
+        </div>
+        <label>Note (optional)<input type="text" id="fNote" class="input" maxlength="200" placeholder="Add a note" /></label>
+        <button type="submit" class="btn primary block" id="saveBtn">Save Expense</button>
+        <button type="button" class="btn ghost block" id="cancelBtn">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
